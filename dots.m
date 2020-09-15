@@ -4,11 +4,12 @@ function [  ] = dots(figureNumber)
 	scale = [];
 	player = [];
 	board = [];
-	col = [0.9290    0.6940    0.1250; 0    0.4470    0.7410];
+	col = [0.9290    0.6940    0.1250; 0    0.4470    0.7410]; % rgb vals for [orange; blue]
 	blueWins =[];
 	orangeWins = [];
 	blueScore = [];
 	orangeScore = [];
+	indicator = [];
 	
 	if(nargin<1)
 		figureNumber = 1;
@@ -21,12 +22,13 @@ function [  ] = dots(figureNumber)
 		% Get new height and width of the figure
 		h = f.Position(4); 
 		w = f.Position(3);
-		if(h/w<500/500) % determine if limited by height or width (check aspect ratio)
+		if(h/w<1) % determine if limited by height or width (check aspect ratio)
 			s = h;
 		else
-			s = w*500/500;
+			s = w;
 		end
 		ax.Position = [(w-s*6/7)/2 (h-s)/2, s*6/7 s];
+		axp = ax.Position;
 		
 		c = ax.Children;
 		for i=1:length(c)
@@ -35,20 +37,22 @@ function [  ] = dots(figureNumber)
 		end
 		
 		orangeWins.Position(3:4) = orangeWins.Position(3:4)*s/scale;
-		orangeWins.Position(1:2) = [ax.Position(1)+(ax.Position(3)-orangeWins.Position(3))/2 ax.Position(2)+(ax.Position(4)-orangeWins.Position(4))/2];
+		orangeWins.Position(1:2) = [axp(1)+(axp(3)-orangeWins.Position(3))/2 axp(2)+(axp(4)-orangeWins.Position(4))/2];
 		orangeWins.FontSize = orangeWins.FontSize*s/scale;
 		
 		blueWins.Position(3:4) = blueWins.Position(3:4)*s/scale;
-		blueWins.Position(1:2) = [ax.Position(1)+(ax.Position(3)-blueWins.Position(3))/2 ax.Position(2)+(ax.Position(4)-blueWins.Position(4))/2];
+		blueWins.Position(1:2) = [axp(1)+(axp(3)-blueWins.Position(3))/2 axp(2)+(axp(4)-blueWins.Position(4))/2];
 		blueWins.FontSize = blueWins.FontSize*s/scale;
 		
 		orangeScore.Position(3:4) = orangeScore.Position(3:4)*s/scale;
 		blueScore.Position(3:4) = blueScore.Position(3:4)*s/scale;
-		
-		orangeScore.Position(1:2) = [ax.Position(1)+(ax.Position(3)-(blueScore.Position(3)*2+10*s/500))/2+50*s/500 ax.Position(2)+(ax.Position(4)-orangeScore.Position(4))/2-(orangeScore.Position(4)+5*s/500)];
-		blueScore.Position(1:2) = [ax.Position(1)+(ax.Position(3)-(blueScore.Position(3)*2+10*s/500))/2 ax.Position(2)+(ax.Position(4)-orangeScore.Position(4))/2-(orangeScore.Position(4)+5*s/500)];
+		orangeScore.Position(1:2) = [axp(1)+(axp(3)-(blueScore.Position(3)*2+10*s/500))/2+50*s/500 axp(2)+(axp(4)-orangeScore.Position(4))/2-(orangeScore.Position(4)+5*s/500)];
+		blueScore.Position(1:2) = [axp(1)+(axp(3)-(blueScore.Position(3)*2+10*s/500))/2 axp(2)+(axp(4)-orangeScore.Position(4))/2-(orangeScore.Position(4)+5*s/500)];
 		orangeScore.FontSize = orangeScore.FontSize*s/scale;
 		blueScore.FontSize = blueScore.FontSize*s/scale;
+		
+		indicator.Position(3:4) = indicator.Position(3:4)*s/scale;
+		indicator.Position(1:2) = [axp(1)+axp(3)+(f.Position(3)-axp(1)-axp(3))*0.1, axp(2)+axp(4)-indicator.Position(4)*1.1];
 		
 		scale = s;
 	end
@@ -79,6 +83,7 @@ function [  ] = dots(figureNumber)
 		
 		if(~s)
 			player = -player;
+			indicator.BackgroundColor = col(player*0.5+1.5,:);
 		elseif( nnz(board)==97+42 ) % all lines drawn
 			score1 = sum(sum(board==2));
 			score_1 = sum(sum(board==-2));
@@ -146,6 +151,7 @@ function [  ] = dots(figureNumber)
 		
 		player = 1;
 		board = zeros(15,13);
+		indicator.BackgroundColor = col(player*0.5+1.5,:);
 	end
 	
 	function [] = figureSetup(fignum)
@@ -176,6 +182,7 @@ function [  ] = dots(figureNumber)
 		axis equal
 		hold on
 		ax.Color = f.Color;
+		axp = ax.Position;
 		
 		blueWins = uicontrol(f,'Style','pushbutton',...
 			'String','Blue Wins',...
@@ -184,7 +191,7 @@ function [  ] = dots(figureNumber)
 			'Visible','off',...
 			'Units','pixels',...
 			'Callback',@gameSetup,...
-			'Position',[ax.Position(1)+(ax.Position(3)-140)/2 ax.Position(2)+(ax.Position(4)-35)/2, 140 35]);
+			'Position',[axp(1)+(axp(3)-140)/2 axp(2)+(axp(4)-35)/2, 140 35]);
 		
 		orangeWins = uicontrol(f,'Style','pushbutton',...
 			'String','Orange Wins',...
@@ -193,7 +200,7 @@ function [  ] = dots(figureNumber)
 			'Visible','off',...
 			'Callback',@gameSetup,...
 			'Units','pixels',...
-			'Position',[ax.Position(1)+(ax.Position(3)-180)/2 ax.Position(2)+(ax.Position(4)-35)/2, 165 35]);
+			'Position',[axp(1)+(axp(3)-180)/2 axp(2)+(axp(4)-35)/2, 165 35]);
 		
 		blueScore = uicontrol(f,'Style','text',...
 			'String','42',...
@@ -201,7 +208,7 @@ function [  ] = dots(figureNumber)
 			'ForegroundColor',col(2,:),...
 			'Visible','off',...
 			'Units','pixels',...
-			'Position',[ax.Position(1)+(ax.Position(3)-90)/2 ax.Position(2)+(ax.Position(4)-35)/2-40, 40 35]);
+			'Position',[axp(1)+(axp(3)-90)/2 axp(2)+(axp(4)-35)/2-40, 40 35]);
 		
 		orangeScore = uicontrol(f,'Style','text',...
 			'String','42',...
@@ -209,9 +216,13 @@ function [  ] = dots(figureNumber)
 			'ForegroundColor',col(1,:),...
 			'Visible','off',...
 			'Units','pixels',...
-			'Position',[ax.Position(1)+(ax.Position(3)-90)/2+50 ax.Position(2)+(ax.Position(4)-35)/2-40, 40 35]);
+			'Position',[axp(1)+(axp(3)-90)/2+50 axp(2)+(axp(4)-35)/2-40, 40 35]);
+		
+		indicator = uicontrol(f,'Style','text',... % turn indicator
+			'Position',[axp(1)+axp(3)+(f.Position(3)-axp(1)-axp(3))*0.1, axp(2)+axp(4)-(f.Position(3)-axp(1)-axp(3)), (f.Position(3)-axp(1)-axp(3))/1.1, (f.Position(3)-axp(1)-axp(3))/1.1],...
+			'BackgroundColor',[0 0 0]);	
 	end
 end
 
-% 7 squares tall, 6 wide
+% 7 squares tall, 6 wide 
 % 8 dots tall, 7 dots wide
